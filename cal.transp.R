@@ -146,14 +146,3 @@ writeLines(sprintf("{%s}", paste(fls, cut(d3[, "p.tp"], c(0, quantile(d3[, "p.tp
 write.csv(d3, "transp.all.csv", fileEncoding = "utf-8")
 # save necessary data  
 write.table(d3[order(d3[, "p.tp"], decreasing = T), c("npo.name", "p.tp", "raw.tp", "n.item")], "transp.csv", row.names = T, fileEncoding="utf-8")
-
-# # inspect the data
-# setwd(data.wd)
-# 
-# ddd <- as.data.frame(d0)
-# dd <- fls[ddd$F34>0]
-# 
-# 
-# 
-# x <- list.dirs()
-# x <- x[grep("reports", x)]
