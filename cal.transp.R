@@ -11,7 +11,7 @@ library(rjson)
 ### 2: transp.all.csv --> all data for this call, for reference
 
 save <- F
-prj.wd <- "~/cal.transp/"
+prj.wd <- "~/function/cal.transp/"
 if (getwd()!= prj.wd) setwd(prj.wd)
 # get all column names refering to "Fxx"
 f <- rjson::fromJSON(file="colnames.json")
@@ -26,8 +26,9 @@ df <- data.frame(col.id=f1, col.nm=f2, stringsAsFactors = F)
 # get "Fxx" of "董事長" & "理事長"
 nm <- df$col.id[grep("事長", df$col.nm)]
 
+# write.csv(df, "col.names.csv", row.names = F)
 
-data.wd <- "/home/_obsolete/kj/www/smartdonor/cache/npodatas/"
+# data.wd <- "/home/_obsolete/kj/www/smartdonor/cache/npodatas/"
 setwd(data.wd)
 
 npo.name <- rjson::fromJSON(file="../npos.json")
