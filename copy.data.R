@@ -31,5 +31,5 @@ stopifnot(r==length(fls))
 file.copy(from = "../npos.json", to = "~/cal.transp/")
 
 if (system("hostname")!="skyrim3") {
-  system("sshpass -f /home/helen/auxiliary/pw.txt scp helen@skyrim3:~/cal.transp/npos.json ~/data/smartdonor/")
+  system("sshpass -f /home/helen/auxiliary/pw.txt scp helen@skyrim3:/home/brianpan/www/smartdonor_production/cache/npos.json ~/data/smartdonor/")
 }
