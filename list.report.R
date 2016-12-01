@@ -47,8 +47,8 @@ tar$review <- ""
 tar <- data.table(tar)
 tar[, n.yr:=.N, by=npo.id]
 
-tmp <- tar[, .(n.npo=.N), by=yr]
-setorder(tmp, yr)
+# tmp <- tar[, .(n.npo=.N), by=yr]
+# setorder(tmp, yr)
 
 if(getwd()!=prj.wd) setwd(prj.wd)
 write.csv(tar, "npo_report_list.csv", row.names = F)
