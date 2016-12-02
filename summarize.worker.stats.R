@@ -36,5 +36,6 @@ s4 <- data.frame(s4)
 # Rocio 原來做了 40 份
 s4[which(s4$input=="韋汝"), "plan"] <- as.integer(s4[which(s4$input=="韋汝"), "plan"]) + 6
 s4[which(s4$input=="rocio"), "plan"] <- as.integer(s4[which(s4$input=="rocio"), "plan"]) - 40
+s4[which(s4$input=="rocio"), "done"] <- as.integer(s4[which(s4$input=="rocio"), "done"]) - 40
 s4 <- rbind(s4, c("total", colSums(s4[, -1])))
 View(s4)

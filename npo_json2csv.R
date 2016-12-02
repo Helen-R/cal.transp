@@ -3,11 +3,12 @@ library(dplyr)
 library(data.table)
 options(stringsAsFactors = F)
 
-# status options
+# status options----
 status.option <- c("$", "包含子項目欄位", "無此資訊", "已包含於其他欄位")
 # get standard item level
 item.lvl <- read.csv(paste0(prj.wd, "/npo_reports_lvl.csv"), stringsAsFactors = F)
 na.idx <- is.na(item.lvl$l3)
+# standard items
 standard.item.list <- c(item.lvl$l2[na.idx], item.lvl$l3[!na.idx])
 l1 <- unique(item.lvl$l1)
 t1 <- item.lvl$l2[is.na(item.lvl$l3) & item.lvl$l1 %in% l1[1]]
@@ -25,9 +26,10 @@ t44 <- item.lvl$l3[!is.na(item.lvl$l3) & item.lvl$l1 %in% l1[4]]
 t4 <- c(t4, t44[c(1, 4, 7)])
 t44 <- t44[-c(1, 4, 7)]
 
-# function call example:
+# function call example:----
 # extract.json(c=npoxxxx.[hash_key].json, col="content")
 # check.report(csv=data.frame)
+# web.json2df(file="pages_crawler.json")
 # json2csv(f=npoxxxx.[hash_key].json, save=T)
 
 extract.json <- function (fields, column) {
@@ -71,21 +73,22 @@ check.report <- function (df, illegal) {
   # check buggy issues of report and return the # of buggy items
   # input: 
   #   [n x 7] data frame generated from npoxxxx.[hash_key].json by extract.json()
-  #     ex. df[, "content", "item", "status", "message", "parent", "page", "height"]
+  #     ex. df[, "content", "item", "status", "message", "parent", "page", "width", "height"]
   # output: 
   #   how many buggy items to be tracked (named int array)
+  #     to.check    需要人工檢查的項目
+  #       - 標準項目不足 57
+  #       - 是否太多項為 0 
+  #       - 輸入太少項
+  #       - 
   #     incomplete 未輸入完成項目 
-  #     child.no.amount 子項目 (有parent name) 沒有金額
   #     unbalance 資產負債表不平衡 
-  #     irregular.status "status" 出現不應存在的選項
-  #     irregular.item 沒有 parent name (父項目) 但這個 item 不在父項目標準清單中
-  #     it.should.be.na 已包含於其他欄位 或 無此資訊 卻有 content (有[非 NA 金額])
-  #     there.should.be.child 包含子項目欄位 必須要有子項目 (檢查parent name)
+  #     there.should.be.child 檢查該父項目是否有子項目 (檢查parent name)
   #     there.should.be.message 已包含於其他欄位 但是沒有 "message"
-  
-  ### todo:
-  ### 多少為無此資訊 (比例不可以過高--> 檢查, 全部都是無此資訊可能也有問題)
-  ### 框畫太高或太窄，必須檢查
+  #     no.rect 是否有框
+  #     neg.rect 長寬異常 (是負值者)
+  #     rect.too.long (aspect ratio < 1 可能連框多個數字 不允許)
+  #     rect.too.wide (mean aspect ratio > 8 過寬者需要檢查是否框到不必要的資訊)
   
   
   ## 要check的項目：
@@ -304,6 +307,26 @@ check.report <- function (df, illegal) {
 
 
 
+web.json2df <- function(file="pages_crawler.json") {
+  # extract info from json to df
+  # input:
+  #   json: 
+  #     # of words in the website: word_counts
+  #     # of pages in the webiste: webpages
+  # output:csv format
+  #   n x 3 data frame
+  #   [col 1] word_counts
+  #   [col 2] webpages
+  x <- fromJSON(file=file)
+  tmp <- t(sapply(x, rbind))
+  tmp <- as.data.frame(tmp)
+  colnames(tmp) <- names(x[[1]])
+  tmp$npo.id <- sprintf("npo%04d", as.integer(rownames(tmp)))
+  tmp
+}
+
+
+
 json2csv <- function(f, save=F) {
   # convert json to data frame and save into csv format
   # input:
@@ -314,6 +337,12 @@ json2csv <- function(f, save=F) {
   #     save the df to csv format or not
   #     if FALSE, return the data frame
   #     if TRUE, return output file name????
+  # output:
+  #   npoxxxx.year.csv
+  #   result of the review
+  #     [col 1-2] npo.id, yr
+  #     [col 3] review ("v" or "x")
+  #     [col 4] note (the reason why it's "x")
   
   ## read in json file
   js <- rjson::fromJSON(file=f)
@@ -378,19 +407,15 @@ json2csv <- function(f, save=F) {
     write.csv(df, f.out, row.names = F)
   }
   
-  # what to return?? data frame or result of checking?
+  
+  # what to return?? the json data or the result of checking?
+  # ### 1 the data from json to df
   # return(df)
+  # ### 2 result of checking:
   return(data.frame(npo.id=npo.id, yr=yr,
                     review=ifelse(sum(buggy[[1]][-which(names(buggy[[1]])=="to.check")])!=0, "x", 
                                   ifelse(buggy[[1]]["to.check"]>0, "check", "v")),
                     note=paste(buggy[[2]], collapse = "; ")))
-  # if(is.null(df$parent_item)) {
-  #   cat(sprintf("%s %d na.parent over %d row %s \n", f.out, sum(is.null(df$parent_item)), nrow(df), f))
-  #   flush.console()
-  #   return(df)
-  # } else {
-  #   NA
-  # }
 }
 
 # problem history:

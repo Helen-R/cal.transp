@@ -43,7 +43,7 @@ save <- T
 # data.wd <- "/home/brianpan/www/smartdonor_production/cache"
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-if (!prj.wd %in% ls()) source("check.wd.R")
+if (!"prj.wd" %in% ls()) source("check.wd.R")
 
 # get the colnames (F1=基本資料, F2=服務概況, ...)
 # prj.wd: "~/function/cal.transp"
@@ -85,7 +85,12 @@ colnames(npos) <- c("npo.id", "npo.name")
 
 # get json file list ("fields/npoxxxx.json")
 # or get json file list ("npoxxxx/fields.json")
-fls <- list.dirs(file.path(data.wd, "npodatas"))
+if (system("hostname", intern = T)=="skyrim3") {
+  fls <- list.dirs(file.path(data.wd, "npodatas"))
+} else {
+  fls <- list.files(file.path(data.wd, "fields"))
+  fls <- gsub(".json", "", fls)
+}
 fls1 <- basename(fls)
 fls <- fls[which(fls1 %in% npos[, "npo.id"])]
 
@@ -105,7 +110,11 @@ for (x in fls) {
     flush.console()
   }
   
-  j <- rjson::fromJSON(file = file.path(x, "fields.json"))
+  if (system("hostname", intern = T)=="skyrim3") {
+    j <- rjson::fromJSON(file = file.path(x, "fields.json"))
+  } else {
+    j <- rjson::fromJSON(file = file.path(data.wd, "fields", paste0(x, ".json")))
+  }
   
   d <-sapply(j, length)
   o <- order(names(d))
@@ -173,27 +182,30 @@ flush.console()
 print(sprintf("Max ratings = %s", total))
 flush.console()
 
-# # check and choose proper cut 
-# hist(d3[, "p.tp"], br=100, xlab="Npo transparency", main="Histogram of Transparency")
-# c1 <- quantile(d3[, "p.tp"], c(0.33, 0.66))[1]
-# c2 <- quantile(d3[, "p.tp"], c(0.33, 0.66))[2]
-# offset <- 3
-# text(c1+offset, sum(d3$p.tp==c1), sum(d3$p.tp==c1))
-# text(c2+offset, sum(d3$p.tp==c2), sum(d3$p.tp==c2))
-# plot(d3$p.tp, d3$n.item, cex=0.5, pch=1, xlab="Transparency in percentage", ylab="Number of items completed")
-# abline(a=0, b=26/100, col="red")
-# 
-# # plot.ecdf(d3[, "p.tp"], pch=".")
-# 
-# # table(cut(d3[, "p.tp"], c(0, 40, 80, 100), labels=3:1))
-# # table(cut(d3[, "p.tp"], c(0, 60, 80, 100), labels=3:1))
-# # quantile(d3[, "p.tp"], c(0.33, 0.66))
-# table(cut(d3[, "p.tp"], c(0, quantile(d3[, "p.tp"], c(0.33, 0.66)), 100), labels=3:1))
+# check and choose proper cut
+hist(d3[, "p.tp"], br=100, xlab="Npo transparency", main="Histogram of Transparency")
+c1 <- quantile(d3[, "p.tp"], c(0.33, 0.66))[1]
+c2 <- quantile(d3[, "p.tp"], c(0.33, 0.66))[2]
+offset <- 3
+text(c1+offset, sum(d3$p.tp==c1), sum(d3$p.tp==c1))
+text(c2+offset, sum(d3$p.tp==c2), sum(d3$p.tp==c2))
+plot(d3$p.tp, d3$n.item, cex=0.5, pch=1, xlab="Transparency in percentage", ylab="Number of items completed")
+abline(a=0, b=26/100, col="red")
+
+# plot.ecdf(d3[, "p.tp"], pch=".")
+
+# table(cut(d3[, "p.tp"], c(0, 40, 80, 100), labels=3:1))
+# table(cut(d3[, "p.tp"], c(0, 60, 80, 100), labels=3:1))
+# quantile(d3[, "p.tp"], c(0.33, 0.66))
+table(cut(d3[, "p.tp"], c(0, quantile(d3[, "p.tp"], c(0.33, 0.66)), 100), labels=3:1))
 
 # output files
 if (save == T) {
-  # output the transparency rank (3, 2, 1) for every npo
-  writeLines(sprintf("{%s}", paste(fls, cut(d3[, "p.tp"], c(0, quantile(d3[, "p.tp"], c(0.33, 0.66)), 100), labels=3:1), sep=":", collapse=",")), "transp.json")
+  # # output the transparency rank (3, 2, 1) for every npo
+  #xxxx rank <- cut(d3[, "p.tp"], c(0, quantile(d3[, "p.tp"], c(0.33, 0.66)), 100), labels=3:1)
+  #xxxx writeLines(sprintf("{%s}", paste(fls, rank, sep=":", collapse=",")), "transp.json")
+  # output the transparency grades (out of 100)
+  writeLines(sprintf("{%s}", paste(fls, d3[, "p.tp"], sep=":", collapse=",")), "transp.json")
   # save raw data for reference
   write.csv(d3, "transp.all.csv", fileEncoding = "utf-8")
   # save necessary data  

@@ -93,13 +93,13 @@ if (hostname=="skyrim3") {
   unlink(to.dir, recursive = T) # delete the whole dir
   if (!dir.exists(to.dir)) dir.create(to.dir)
   
-  # # delete old files
-  # old <- list.files(to.dir)
-  # del <- old[!old %in% to]
-  # if (length(del)){
-  #   cat(sprintf("%s \n", del))
-  #   file.remove(del)
-  # }
+  # delete old files
+  old <- list.files(to.dir)
+  del <- old[!old %in% to]
+  if (length(del)){
+    cat(sprintf("%s \n", del))
+    file.remove(del)
+  }
   
   ## copy reports
   to <- paste0(to.dir, tols)
@@ -125,12 +125,12 @@ if (hostname=="skyrim3") {
     flush.console()
   }
   
-  # # 1 copy fields
-  # to.dir <- "~/data/smartdonor/fields/"
-  # if (!dir.exists(to.dir)) dir.create(to.dir)
-  # system("sshpass -f /home/helen/auxiliary/pw.txt scp -r helen@skyrim3:~/cal.transp/fields/*.json ~/data/smartdonor/fields/")
-  # print(sprintf("fields.json sk3 to %s copied", hostname))
-  # flush.console()
+  # 1 copy fields
+  to.dir <- "~/data/smartdonor/fields/"
+  if (!dir.exists(to.dir)) dir.create(to.dir)
+  system("sshpass -f /home/helen/auxiliary/pw.txt scp -r helen@skyrim3:~/cal.transp/fields/*.json ~/data/smartdonor/fields/")
+  print(sprintf("fields.json sk3 to %s copied", hostname))
+  flush.console()
   
   # 2 copy reports
   to.dir <- "~/data/smartdonor/reports/"
